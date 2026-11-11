@@ -1,0 +1,56 @@
+# One command starts the whole system:  docker compose up --build
+# Only the gateway is exposed to the host; services talk to each other on the internal network.
+x-common: &common
+  environment: &env
+    JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+    INTERNAL_KEY: ${INTERNAL_KEY:-internal-dev-key}
+    DB_PATH: /data/db.sqlite
+  restart: unless-stopped
+
+services:
+  gateway:
+    build: ./services/gateway
+    ports: ["8000:8000"]
+    environment:
+      USER_URL: http://user-service:8000
+      ROOM_URL: http://room-service:8000
+      MESSAGE_URL: http://message-service:8000
+      NOTIFICATION_URL: http://notification-service:8000
+      ACTIVITY_URL: http://activity-service:8000
+    depends_on: [user-service, room-service, message-service, notification-service, activity-service]
+    restart: unless-stopped
+
+  user-service:
+    <<: *common
+    build: ./services/user-service
+    volumes: ["user-data:/data"]
+
+  room-service:
+    <<: *common
+    build: ./services/room-service
+    environment:
+      <<: *env
+      ACTIVITY_URL: http://activity-service:8000
+    volumes: ["room-data:/data"]
+
+  message-service:
+    <<: *common
+    build: ./services/message-service
+    environment:
+      <<: *env
+      ROOM_URL: http://room-service:8000
+      NOTIFICATION_URL: http://notification-service:8000
+      ACTIVITY_URL: http://activity-service:8000
+    volumes: ["message-data:/data"]
+
+  notification-service:
+    <<: *common
+    build: ./services/notification-service
+    volumes: ["notification-data:/data"]
+
+  activity-service:
+    <<: *common
+    build: ./services/activity-service
+    volumes: ["activity-data:/data"]
+
+volumes: {user-data: {}, room-data: {}, message-data: {}, notification-data: {}, activity-data: {}}

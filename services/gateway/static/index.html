@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StudyHub - Microservices Demo</title>
+<style>
+  body{font-family:system-ui,sans-serif;margin:0;background:#f4f5f7;color:#222}
+  header{background:#3f51b5;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center}
+  main{display:grid;grid-template-columns:260px 1fr 280px;gap:16px;padding:16px;max-width:1200px;margin:auto}
+  section{background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 3px #0002}
+  h3{margin-top:0} input,textarea,button{font:inherit;padding:6px 8px;margin:3px 0;width:100%;box-sizing:border-box}
+  button{width:auto;cursor:pointer;background:#3f51b5;color:#fff;border:0;border-radius:4px}
+  button.link{background:none;color:#3f51b5;padding:0}
+  .room{padding:6px 0;border-bottom:1px solid #eee;cursor:pointer}
+  .msg{padding:6px 0;border-bottom:1px solid #eee} .muted{color:#777;font-size:.85em}
+  #health span{display:inline-block;margin-right:8px;font-size:.85em} .up{color:green}.down{color:crimson}
+  @media(max-width:900px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><b>StudyHub - Microservices Demo</b><span id="who"></span></header>
+<main>
+  <section>
+    <div id="auth">
+      <h3>Login / Register</h3>
+      <input id="u" placeholder="username"><input id="e" placeholder="email (register only)">
+      <input id="p" type="password" placeholder="password">
+      <button onclick="auth('login')">Login</button> <button onclick="auth('register')">Register</button>
+    </div>
+    <div id="newroom" style="display:none">
+      <h3>New room</h3>
+      <input id="rn" placeholder="room name"><input id="rt" placeholder="topic"><input id="rd" placeholder="description">
+      <button onclick="createRoom()">Create</button>
+      <p><button class="link" onclick="logout()">Logout</button></p>
+    </div>
+    <h3>Rooms</h3><div id="rooms"></div>
+  </section>
+  <section>
+    <h3 id="roomtitle">Select a room</h3><div id="messages"></div>
+    <div id="composer" style="display:none"><textarea id="body" rows="2" placeholder="Write a message"></textarea>
+      <button onclick="send()">Send</button></div>
+  </section>
+  <section>
+    <h3>Notifications</h3><div id="notes" class="muted">Login to see</div>
+    <h3>Activity feed</h3><div id="activity"></div>
+    <h3>Service health</h3><div id="health"></div>
+  </section>
+</main>
+<script>
+let token = localStorage.token || null, me = localStorage.me || null, room = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function api(path, method='GET', body){
+  const r = await fetch('/api/'+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined});
+  const data = r.status===204 ? null : await r.json().catch(()=>null);
+  if(!r.ok) alert((data&&data.detail&&JSON.stringify(data.detail))||('Error '+r.status));
+  return r.ok ? (data||{}) : null;
+}
+async function auth(kind){
+  const body = kind==='login'?{username:$('u').value,password:$('p').value}:{username:$('u').value,email:$('e').value,password:$('p').value};
+  const d = await api('auth/'+kind,'POST',body); if(!d) return;
+  token=d.token; me=d.user.username; localStorage.token=token; localStorage.me=me; refresh();
+}
+function logout(){ token=me=null; localStorage.clear(); refresh(); }
+async function createRoom(){
+  const d = await api('rooms','POST',{name:$('rn').value,topic:$('rt').value,description:$('rd').value});
+  if(d){ $('rn').value=$('rt').value=$('rd').value=''; loadRooms(); loadActivity(); }
+}
+async function loadRooms(){
+  const rooms = await api('rooms') || [];
+  $('rooms').innerHTML = rooms.map(r=>`<div class="room" onclick="openRoom(${r.id})"><b>${esc(r.name)}</b><br><span class="muted">#${esc(r.topic)} - host ${esc(r.host_name)}</span></div>`).join('') || '<span class="muted">No rooms yet</span>';
+}
+async function openRoom(id){
+  room = await api('rooms/'+id); if(!room) return;
+  $('roomtitle').textContent = room.name; $('composer').style.display = token?'block':'none'; loadMessages();
+}
+async function loadMessages(){
+  if(!room) return;
+  const m = await api('messages?room_id='+room.id) || [];
+  $('messages').innerHTML = m.map(x=>`<div class="msg"><b>${esc(x.username)}</b> <span class="muted">${new Date(x.created*1000).toLocaleTimeString()}</span><br>${esc(x.body)}${x.username===me?` <button class="link" onclick="del(${x.id})">delete</button>`:''}</div>`).join('') || '<span class="muted">No messages</span>';
+}
+async function send(){ if(await api('messages','POST',{room_id:room.id,body:$('body').value})){ $('body').value=''; loadMessages(); loadActivity(); } }
+async function del(id){ await api('messages/'+id,'DELETE'); loadMessages(); }
+async function loadActivity(){
+  const a = await fetch('/api/activity?limit=8').then(r=>r.json()).catch(()=>[]);
+  $('activity').innerHTML = a.map(e=>`<div class="msg"><b>${esc(e.username)}</b> ${esc(e.detail)}</div>`).join('') || '<span class="muted">Nothing yet</span>';
+}
+async function loadNotes(){
+  if(!token) return; const n = await fetch('/api/notifications',{headers:{Authorization:'Bearer '+token}}).then(r=>r.ok?r.json():[]).catch(()=>[]);
+  $('notes').innerHTML = n.slice(0,6).map(x=>`<div class="msg">${esc(x.message)}</div>`).join('') || '<span class="muted">No notifications</span>';
+}
+async function loadHealth(){
+  const h = await fetch('/health').then(r=>r.json()).catch(()=>null); if(!h) return;
+  $('health').innerHTML = Object.entries(h.services).map(([k,v])=>`<span class="${v}">${k}: ${v}</span>`).join('<br>');
+}
+function refresh(){
+  $('auth').style.display = token?'none':'block'; $('newroom').style.display = token?'block':'none';
+  $('who').textContent = me?('Signed in as '+me):''; $('composer').style.display = (token&&room)?'block':'none';
+  loadRooms(); loadActivity(); loadNotes(); loadHealth(); loadMessages();
+}
+refresh(); setInterval(()=>{loadMessages();loadNotes();loadActivity();loadHealth();},5000);
+</script>
+</body>
+</html>
