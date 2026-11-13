@@ -66,6 +66,15 @@ python scripts/smoke_test.py
 ```
 Runs 21 end-to-end checks through the gateway (register, login, rooms, messages, notifications, activity, permissions).
 
+### Unit tests
+
+```bash
+pip install -r requirements-dev.txt
+cd services/user-service && python -m pytest tests -v
+cd ../room-service && python -m pytest tests -v
+```
+Run pytest inside each service folder (every service has a module called `app`).
+
 ## Demo ideas for the viva
 1. Show `docker compose ps`: six containers.
 2. Register two users in the UI, create a room, post a message, see the notification and activity feed.
