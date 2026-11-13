@@ -6,6 +6,8 @@ Evolved from a Django monolith (kept for reference in [`legacy-monolith/`](legac
 
 ## Architecture
 
+![Architecture](docs/architecture.png)
+
 ```
                     Browser / Swagger / Postman
                                |
@@ -36,7 +38,6 @@ How services talk (REST over HTTP):
 - Internal endpoints (`POST /notifications`, `POST /events`) need an `X-Internal-Key` and are blocked at the gateway.
 
 Details and diagrams: [docs/architecture.md](docs/architecture.md). Team split: [docs/TEAM_TASKS.md](docs/TEAM_TASKS.md).
-![Architecture](docs/architecture.png)
 ## Run with Docker (recommended)
 
 ```bash
