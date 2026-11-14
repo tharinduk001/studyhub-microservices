@@ -1,56 +1,48 @@
-# One command starts the whole system:  docker compose up --build
-# Only the gateway is exposed to the host; services talk to each other on the internal network.
 x-common: &common
   environment: &env
-    JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+    SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
     INTERNAL_KEY: ${INTERNAL_KEY:-internal-dev-key}
+    REDIS_URL: redis://redis:6379/1
     DB_PATH: /data/db.sqlite
   restart: unless-stopped
+  depends_on: [redis]
 
 services:
-  gateway:
-    build: ./services/gateway
-    ports: ["8000:8000"]
-    environment:
-      USER_URL: http://user-service:8000
-      ROOM_URL: http://room-service:8000
-      MESSAGE_URL: http://message-service:8000
-      NOTIFICATION_URL: http://notification-service:8000
-      ACTIVITY_URL: http://activity-service:8000
-    depends_on: [user-service, room-service, message-service, notification-service, activity-service]
+  redis:
+    image: redis:7-alpine
     restart: unless-stopped
 
   user-service:
     <<: *common
-    build: ./services/user-service
+    build: ./studyhub-microservices/user-service
+    ports: ["8001:8000"]
     volumes: ["user-data:/data"]
 
   room-service:
     <<: *common
-    build: ./services/room-service
+    build: ./studyhub-microservices/room-service
+    ports: ["8002:8000"]
     environment:
       <<: *env
       ACTIVITY_URL: http://activity-service:8000
     volumes: ["room-data:/data"]
+    depends_on: [redis, activity-service]
 
   message-service:
     <<: *common
-    build: ./services/message-service
+    build: ./studyhub-microservices/message-service
+    ports: ["8003:8000"]
     environment:
       <<: *env
       ROOM_URL: http://room-service:8000
-      NOTIFICATION_URL: http://notification-service:8000
       ACTIVITY_URL: http://activity-service:8000
     volumes: ["message-data:/data"]
-
-  notification-service:
-    <<: *common
-    build: ./services/notification-service
-    volumes: ["notification-data:/data"]
+    depends_on: [redis, room-service, activity-service]
 
   activity-service:
     <<: *common
-    build: ./services/activity-service
+    build: ./studyhub-microservices/activity-service
+    ports: ["8004:8000"]
     volumes: ["activity-data:/data"]
 
-volumes: {user-data: {}, room-data: {}, message-data: {}, notification-data: {}, activity-data: {}}
+volumes: {user-data: {}, room-data: {}, message-data: {}, activity-data: {}}
