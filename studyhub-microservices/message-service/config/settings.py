@@ -11,6 +11,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
 INTERNAL_KEY = os.getenv("INTERNAL_KEY", "internal-dev-key")
 ROOM_URL = os.getenv("ROOM_URL", "http://127.0.0.1:8002")
 ACTIVITY_URL = os.getenv("ACTIVITY_URL", "http://127.0.0.1:8004")
+NOTIFICATION_URL = os.getenv("NOTIFICATION_URL", "http://127.0.0.1:8005")
 
 DEBUG = False
 ALLOWED_HOSTS = ["*"]
