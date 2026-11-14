@@ -1,40 +1,43 @@
 # Team Task Plan
 
-Deadline: **20 November** (presentation + viva afterwards). Everyone works on their own `feature/*` branch and opens a pull request into `develop`. Commit often so GitHub shows each person's contribution. Tasks are tracked as GitHub issues (labels: `tharindu`, `duvindu`, `amaya`).
+Deadline: **20 November** (presentation + viva afterwards). Everyone works on their own `feature/*` branch **in the main repo** and opens a pull request into `develop`. Tasks are GitHub issues (labels `tharindu`, `duvindu`, `amaya`).
+
+## Current system (14 Nov): 6 Django microservices
+api-gateway (8000, web UI) | user (8001) | room (8002) | message (8003) | activity (8004) | notification (8005) + Redis for shared sessions. Run with `docker compose up --build`, test with `python scripts/smoke_test.py` (26 checks) and `python manage.py test` inside each service.
 
 | Member | GitHub | Role |
 |---|---|---|
-| Tharindu Kalhara | tharinduk001 | Team lead: architecture, repo, integration, review |
-| Duvindu Embuldeniya | duvindu-embuldeniya | Senior developer: backend features, security, DevOps |
-| Amaya Jayasekara | selya1722 | Documentation, API testing and a small backend change |
+| Tharindu Kalhara | tharinduk001 | Team lead: integration, gateway, notification-service, tests, release |
+| Duvindu Embuldeniya | duvindu-embuldeniya | Backend features, CI, Kubernetes |
+| Amaya Jayasekara | selya1722 | Diagram, Postman, UI styling, activity filter, report and slides |
 
 ## Tharindu (lead)
-- [x] Architecture, repo, user-service, room-service, docker-compose (branch `feature/core-services`)
-- [ ] #1 Unit tests for user-service and room-service - previous suite was removed during the Django/session-auth restructuring; needs to be rewritten from scratch (`feature/tests-core`)
-- [ ] #2 Review all pull requests, keep `develop` green, merge to `main` and tag `v1.0`
-- [ ] #11 Rehearse demo; present architecture and service communication
+- [x] Docker verification (#16), room edit/delete UI (#18), stats panel (#20)
+- [x] #1 Unit tests (user, room, notification, gateway)
+- [x] #4 Notification-service built (read-all, unread count) and #12 gateway with rate limiting built
+- [x] Restored web UI and `scripts/smoke_test.py` for the Django structure
+- [ ] #2 Review PRs, keep `develop` green, release `main` + tag `v1.0` (18-19 Nov)
+- [ ] #11 Demo and viva (architecture, gateway, sessions via Redis)
 
-## Duvindu (experienced, most technical work)
-- [ ] #3 Message-service: edit message, pagination, internal room cleanup (`optimize-workload`)
-- [ ] #4 Notification-service: mark all read + unread count (`optimize-workload`)
-- [ ] #12 Gateway: rate limiting (`optimize-workload`)
-- [ ] #13 CI: GitHub Actions running the smoke test (`feature/ci`)
-- [ ] #5 Kubernetes manifests, stretch goal - gateway via APISIX, notifications via Novu (`feature/kubernetes`)
-- [ ] #11 Rehearse demo; present message flow, resilience demo (stop a service), CI/Kubernetes
+## Duvindu
+- [ ] #3 Message-service: edit message, pagination, internal room cleanup (`feature/message-service`) - **due 16 Nov**
+- [ ] Unit tests for message-service and activity-service (`feature/tests-message-activity`) - 17 Nov
+- [ ] #13 CI: GitHub Actions running `docker compose up` + `scripts/smoke_test.py` (`feature/ci`) - 17 Nov
+- [ ] #5 Kubernetes manifests, stretch (`feature/kubernetes`) - 18 Nov
+- [ ] #11 Demo and viva (message flow, resilience demo, CI, Kubernetes)
 
-## Amaya (guided, well-scoped tasks)
-- [ ] #6 Final architecture diagram (`feature/diagram`)
-- [ ] #7 Postman collection for all endpoints (`feature/postman`)
-- [ ] #8 No web UI exists anymore (removed along with the gateway) - no longer applicable as written; ask Tharindu for a replacement task (`feature/frontend-polish`)
-- [ ] #9 Activity-service: filter feed by event type, one small change (`feature/activity-filter`)
-- [ ] #10 Report and slides: project idea, scenarios, team contributions
-- [ ] #11 Rehearse demo; present the project idea and a Postman walk-through of the API (no web UI anymore)
+## Amaya
+- [ ] #7 Postman collection (through the gateway, `http://localhost:8000/api/...`) (`feature/postman`) - 15 Nov
+- [ ] #9 Activity feed filter by type (`feature/activity-filter`) - 16 Nov
+- [ ] #8 Polish the web UI CSS (`feature/frontend-polish`) - 16 Nov
+- [ ] Update the architecture diagram to the 6-service version (`feature/diagram-v2`, see README) - 17 Nov
+- [ ] #10 Report and slides - 18 Nov
+- [ ] #11 Demo and viva (idea, scenarios, UI walk-through)
 
 ## Shared before submission
-- [ ] Everyone can run `docker compose up --build` on their own machine
-- [ ] Each service's `/health` responds and the register -> create room -> post message -> activity feed flow works end to end (no `scripts/smoke_test.py` anymore - check manually via curl/Postman)
-- [ ] Rehearse the demo twice; each person explains the parts they built
+- [ ] Everyone can run `docker compose up --build` and `python scripts/smoke_test.py` passes
+- [ ] Rehearse the demo twice; each person explains what they built
 - [ ] Tag the final commit on `main` (`v1.0`)
 
 ## Evidence of contribution
-GitHub Insights -> Contributors, the pull request list, issues assigned per person, and `git shortlog -sn` output in the report.
+GitHub Insights -> Contributors, the PR list, issues per person, `git shortlog -sn`.

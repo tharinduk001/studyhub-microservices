@@ -1,3 +1,5 @@
+# One command starts the whole system:  docker compose up --build
+# Open the web UI at http://localhost:8000 (api-gateway). Each service also exposes its own port for debugging.
 x-common: &common
   environment: &env
     SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
@@ -10,6 +12,19 @@ x-common: &common
 services:
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
+
+  gateway:
+    build: ./studyhub-microservices/gateway
+    ports: ["8000:8000"]
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
+      USER_URL: http://user-service:8000
+      ROOM_URL: http://room-service:8000
+      MESSAGE_URL: http://message-service:8000
+      ACTIVITY_URL: http://activity-service:8000
+      NOTIFICATION_URL: http://notification-service:8000
+    depends_on: [user-service, room-service, message-service, activity-service, notification-service]
     restart: unless-stopped
 
   user-service:
@@ -36,8 +51,9 @@ services:
       <<: *env
       ROOM_URL: http://room-service:8000
       ACTIVITY_URL: http://activity-service:8000
+      NOTIFICATION_URL: http://notification-service:8000
     volumes: ["message-data:/data"]
-    depends_on: [redis, room-service, activity-service]
+    depends_on: [redis, room-service, activity-service, notification-service]
 
   activity-service:
     <<: *common
@@ -45,4 +61,10 @@ services:
     ports: ["8004:8000"]
     volumes: ["activity-data:/data"]
 
-volumes: {user-data: {}, room-data: {}, message-data: {}, activity-data: {}}
+  notification-service:
+    <<: *common
+    build: ./studyhub-microservices/notification-service
+    ports: ["8005:8000"]
+    volumes: ["notification-data:/data"]
+
+volumes: {user-data: {}, room-data: {}, message-data: {}, activity-data: {}, notification-data: {}}

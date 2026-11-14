@@ -73,7 +73,12 @@ def messages_collection(request):
         room_id=room_id, user_id=payload["user_id"], username=payload["username"], body=body, created=time.time()
     )
 
-    # 2. Non-critical side effect: record activity
+    # 2. Non-critical side effects: notify the room host, record activity
+    if room.get("host_id") != payload["user_id"]:
+        fire_and_forget(
+            f"{settings.NOTIFICATION_URL}/notifications",
+            {"user_id": room["host_id"], "message": f"{payload['username']} posted in '{room['name']}'"},
+        )
     fire_and_forget(
         f"{settings.ACTIVITY_URL}/events",
         {
