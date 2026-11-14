@@ -47,6 +47,7 @@
   <section>
     <h3>Notifications</h3><div id="notes" class="muted">Login to see</div>
     <h3>Activity feed</h3><div id="activity"></div>
+    <h3>Platform stats</h3><div id="stats" class="muted">Loading...</div>
     <h3>Service health</h3><div id="health"></div>
   </section>
 </main>
@@ -108,6 +109,13 @@ async function loadActivity(){
   const a = await fetch('/api/activity?limit=8').then(r=>r.json()).catch(()=>[]);
   $('activity').innerHTML = a.map(e=>`<div class="msg"><b>${esc(e.username)}</b> ${esc(e.detail)}</div>`).join('') || '<span class="muted">Nothing yet</span>';
 }
+async function loadStats(){
+  const s = await fetch('/api/activity/stats').then(r=>r.ok?r.json():null).catch(()=>null);
+  if(!s){ $('stats').textContent = 'Stats unavailable'; return; }
+  const types = Object.entries(s.by_type).map(([k,v])=>`${esc(k.replace('_',' '))}: <b>${v}</b>`).join('<br>') || 'No events yet';
+  const top = s.most_active_users.map(u=>`${esc(u.username)} (${u.events})`).join(', ');
+  $('stats').innerHTML = `Total events: <b>${s.total_events}</b><br>${types}` + (top ? `<br>Most active: ${top}` : '');
+}
 async function loadNotes(){
   if(!token) return; const n = await fetch('/api/notifications',{headers:{Authorization:'Bearer '+token}}).then(r=>r.ok?r.json():[]).catch(()=>[]);
   $('notes').innerHTML = n.slice(0,6).map(x=>`<div class="msg">${esc(x.message)}</div>`).join('') || '<span class="muted">No notifications</span>';
@@ -119,9 +127,9 @@ async function loadHealth(){
 function refresh(){
   $('auth').style.display = token?'none':'block'; $('newroom').style.display = token?'block':'none';
   $('who').textContent = me?('Signed in as '+me):''; $('composer').style.display = (token&&room)?'block':'none'; if(room) showRoomHeader();
-  loadRooms(); loadActivity(); loadNotes(); loadHealth(); loadMessages();
+  loadRooms(); loadActivity(); loadStats(); loadNotes(); loadHealth(); loadMessages();
 }
-refresh(); setInterval(()=>{loadMessages();loadNotes();loadActivity();loadHealth();},5000);
+refresh(); setInterval(()=>{loadMessages();loadNotes();loadActivity();loadStats();loadHealth();},5000);
 </script>
 </body>
 </html>
