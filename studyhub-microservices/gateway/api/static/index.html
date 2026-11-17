@@ -5,17 +5,256 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>StudyHub - Microservices Demo</title>
 <style>
-  body{font-family:system-ui,sans-serif;margin:0;background:#f4f5f7;color:#222}
-  header{background:#3f51b5;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center}
-  main{display:grid;grid-template-columns:260px 1fr 280px;gap:16px;padding:16px;max-width:1200px;margin:auto}
-  section{background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 3px #0002}
-  h3{margin-top:0} input,textarea,button{font:inherit;padding:6px 8px;margin:3px 0;width:100%;box-sizing:border-box}
-  button{width:auto;cursor:pointer;background:#3f51b5;color:#fff;border:0;border-radius:4px}
-  button.link{background:none;color:#3f51b5;padding:0}
-  .room{padding:6px 0;border-bottom:1px solid #eee;cursor:pointer}
-  .msg{padding:6px 0;border-bottom:1px solid #eee} .muted{color:#777;font-size:.85em}
-  #health span{display:inline-block;margin-right:8px;font-size:.85em} .up{color:green}.down{color:crimson}
-  @media(max-width:900px){main{grid-template-columns:1fr}}
+
+/* ==============================
+   STUDYHUB - SAGE & CORAL THEME
+================================ */
+
+:root {
+    --sage: #99B998;
+    --peach: #FDCEAA;
+    --coral: #F4837D;
+    --rose: #EB4960;
+    --slate: #27363B;
+
+    --background: #F5F8F3;
+    --surface: #FFFFFF;
+    --border: #E2EAE0;
+    --muted: #82918A;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    margin: 0;
+    background: var(--background);
+    color: var(--slate);
+    line-height: 1.6;
+}
+
+/* Header */
+header {
+    background: var(--sage);
+    color: var(--slate);
+    padding: 18px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 70px;
+    box-shadow: 0 3px 12px #27363b12;
+}
+
+header b {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+/* Main dashboard */
+main {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr) 320px;
+    gap: 22px;
+    padding: 28px;
+    max-width: 1600px;
+    margin: auto;
+    align-items: start;
+}
+
+/* Dashboard cards */
+section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    min-width: 0;
+    min-height: 380px;
+    box-shadow: 0 4px 18px #27363b0a;
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+section:hover {
+    border-color: var(--sage);
+    box-shadow: 0 7px 22px #27363b12;
+}
+
+/* Headings */
+h3 {
+    margin: 0 0 18px;
+    color: var(--slate);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+section h3:not(:first-child) {
+    margin-top: 26px;
+}
+
+/* Input fields */
+input,
+textarea,
+button {
+    font: inherit;
+    padding: 11px 13px;
+    margin: 6px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+input,
+textarea {
+    background: #FCFDFB;
+    color: var(--slate);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    outline: none;
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+input:focus,
+textarea:focus {
+    border-color: var(--coral);
+    box-shadow: 0 0 0 3px #F4837D25;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #A1AAA3;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* Buttons */
+button {
+    width: auto;
+    cursor: pointer;
+    background: var(--coral);
+    color: var(--slate);
+    border: none;
+    border-radius: 9px;
+    padding: 10px 18px;
+    font-weight: 650;
+    transition: background 0.2s ease,
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+button:hover {
+    background: var(--rose);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px #F4837D30;
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button.link {
+    background: transparent;
+    color: #D96B68;
+    padding: 3px 5px;
+    box-shadow: none;
+}
+
+button.link:hover {
+    background: #FFF0E7;
+    color: var(--slate);
+    transform: none;
+}
+
+/* Rooms and messages */
+.room,
+.msg {
+    padding: 12px 10px;
+    border-bottom: 1px solid #EDF1EA;
+    border-radius: 7px;
+}
+
+.room {
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.room:hover {
+    background: #F2F7EF;
+}
+
+.room:last-child,
+.msg:last-child {
+    border-bottom: none;
+}
+
+.room b,
+.msg b {
+    color: #668C70;
+}
+
+/* Supporting text */
+.muted {
+    color: var(--muted);
+    font-size: 0.88em;
+}
+
+/* Service health */
+#health span {
+    display: inline-block;
+    margin: 6px 8px 6px 0;
+    font-size: 0.88em;
+}
+
+.up {
+    color: #548C70;
+}
+
+.down {
+    color: var(--rose);
+}
+
+/* Responsive layout */
+@media (max-width: 1050px) {
+    main {
+        grid-template-columns: 250px minmax(0, 1fr);
+    }
+
+    main section:last-child {
+        grid-column: 1 / -1;
+        min-height: auto;
+    }
+}
+
+@media (max-width: 700px) {
+    header {
+        padding: 16px 18px;
+    }
+
+    header b {
+        font-size: 1.05rem;
+    }
+
+    main {
+        grid-template-columns: 1fr;
+        padding: 15px;
+        gap: 16px;
+    }
+
+    main section:last-child {
+        grid-column: auto;
+    }
+
+    section {
+        min-height: auto;
+        padding: 18px;
+    }
+}
+
 </style>
 </head>
 <body>
