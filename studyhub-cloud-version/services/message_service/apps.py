@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+
+class MessageServiceConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'services.message_service'
+    label = 'message_service'

@@ -1,12 +1,4 @@
-__pycache__/
-*.pyc
-venv/
-.venv/
-.env
-data/
-*.sqlite3
-*.db
-media/
-.idea/
-.vscode/
-logs/
+studyhub-cloud-version/venv/
+studyhub-cloud-version/.env
+
+staticfiles/
