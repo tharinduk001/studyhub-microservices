@@ -6,6 +6,9 @@ ITS4243 group project. A topic-based chat platform (rooms, messages, notificatio
 
 ## Architecture
 
+![Architecture](studyhub-docs/architecture.png)
+
+
 ```mermaid
 flowchart TD
     Client[Browser / Postman] --> GW[api-gateway :8000<br/>routing, rate limit, web UI]
@@ -43,7 +46,7 @@ How services work together:
 - **message -> room:** synchronous check that the room exists (503 if room-service is down).
 - **message -> notification** and **message/room -> activity:** best-effort calls. If those services are down, posting still works.
 - **Internal endpoints** (`POST /notifications`, `POST /events`) need an `X-Internal-Key`; the gateway blocks `/api/activity/events` from outside.
-- Older diagram image: `studyhub-docs/architecture.png` (4-service version, being updated).
+- Diagram image: `studyhub-docs/architecture.png`.
 
 ## Run (Docker)
 
